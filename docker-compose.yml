@@ -1,0 +1,18 @@
+version: '3'
+
+networks:
+    dev-net:
+        driver: bridge
+
+services:
+    actix-web:
+        hostname: actix-web
+        build:
+            context: ./
+            dockerfile: ./docker/dev/Dockerfile
+        networks:
+            - dev-net
+        ports:
+            - "3000:3000"
+        volumes:
+          - "./:/app"
