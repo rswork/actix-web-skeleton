@@ -1,24 +1,12 @@
 use actix_web::{web, App, HttpResponse, HttpServer, Responder, middleware};
 use listenfd::ListenFd;
-use serde::Serialize;
 use std::env;
 use dotenv::dotenv;
 
-#[derive(Serialize, Debug)]
-struct Pong {
-    status: String,
-    code: i16,
-}
+mod routes;
 
 async fn index() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
-}
-
-async fn ping() -> impl Responder {
-    HttpResponse::Ok().json(Pong {
-        status: "ok".to_string(),
-        code: 200,
-    })
 }
 
 #[actix_rt::main]
@@ -32,7 +20,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .route("/", web::get().to(index))
-            .route("/ping", web::get().to(ping))
+            .configure(routes::init)
     });
 
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
