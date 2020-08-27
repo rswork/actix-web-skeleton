@@ -9,7 +9,7 @@ services:
         hostname: actix-web
         build:
             context: ./
-            dockerfile: ./docker/dev/Dockerfile
+            dockerfile: ./docker/prod/Dockerfile
         networks:
             - dev-net
         ports:

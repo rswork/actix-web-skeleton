@@ -25,6 +25,8 @@ RUN rm -f target/x86_64-unknown-linux-musl/release/deps/actix-web-skeleton*
 
 COPY . .
 
+RUN cp docker/prod/.env .env
+
 RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-linux-musl
 
 # ------------------------------------------------------------------------------
@@ -33,6 +35,12 @@ RUN RUSTFLAGS=-Clinker=musl-gcc cargo build --release --target=x86_64-unknown-li
 
 FROM alpine:latest
 
+RUN mkdir /app
+
+COPY --from=cargo-build /app/.env /app/.env
+
 COPY --from=cargo-build /app/target/x86_64-unknown-linux-musl/release/actix-web-skeleton /usr/local/bin/binapp
 
-CMD ["binapp"]
+WORKDIR /app
+
+CMD binapp
