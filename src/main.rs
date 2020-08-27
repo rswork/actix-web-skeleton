@@ -1,6 +1,8 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder, middleware};
 use listenfd::ListenFd;
 use serde::Serialize;
+use std::env;
+use dotenv::dotenv;
 
 #[derive(Serialize, Debug)]
 struct Pong {
@@ -21,9 +23,14 @@ async fn ping() -> impl Responder {
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
+    env_logger::init();
+
+    let server_url = env::var("SERVER_URL").expect("SERVER_URL is not set in .env file");
     let mut listenfd = ListenFd::from_env();
     let mut server = HttpServer::new(|| {
         App::new()
+            .wrap(middleware::Logger::default())
             .route("/", web::get().to(index))
             .route("/ping", web::get().to(ping))
     });
@@ -31,9 +38,8 @@ async fn main() -> std::io::Result<()> {
     server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
         server.listen(l)?
     } else {
-        server.bind("0.0.0.0:3000")?
+        server.bind(server_url.clone())?
     };
 
-    println!("starting server...");
     server.run().await
 }
